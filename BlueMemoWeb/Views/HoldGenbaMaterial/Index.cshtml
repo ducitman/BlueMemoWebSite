@@ -1,0 +1,316 @@
+﻿
+@{
+    ViewBag.Title = "Single Cart";
+}
+
+<div class="Commonheader">
+    <div class="HeaderTitle">
+        <span class="titleText" style="text-align:center;">Đăng ký Hold 1 Xe</span>
+    </div>
+</div>
+<form>
+    <div class="frame">
+        <div class="divBody">
+            <table style="width: 100%;">
+                <tbody>
+                    <tr style="height: 40px;">
+                        @*<td style="width: 45%; text-align: right; padding-right: 5px;">Mã OP:</td>*@
+                        <td class="cTitle">Mã OP:</td>
+                        <td colspan="3">
+                            <input type="password" id="txtOperatorId" maxlength="8" size="5" onkeydown="return CheckOperator()" placeholder="Mã Code">
+                            <input type="button" id="btnRelease" class="Button" value="Nhập lại" onclick="ReleaseView()" style=" height:35px;">
+                            <input type="button" id="btnMenu" class="Button" value="Menu" onclick="Menu()" style="width:100px;height:35px;">
+                            @*<input type="button" id="btnRelease" class="Button" value="Nhập lại" onclick="ReleaseView()">*@
+                        </td>
+                    </tr>
+                    <tr style="height: 40px;">
+                        <td class="cTitle">EFU:</td>
+                        <td>
+                            <input disabled="" type="text" id="txtEf" size="15" style="ime-mode: disabled" placeholder="Mã Efu Tag" onkeydown="return GetEFUDataBefore()">
+                        </td>
+                    </tr>
+                    <tr style="height: 40px;">
+                        <td class="cTitle">Remain:</td>
+                        <td>
+                            <span id="lblRemain" class="cResult" style="width: 100px;"></span>
+                        </td>                        
+                    </tr>
+                    <tr style="height: 40px;">
+                        <td class="cTitle">Status:</td>
+                        <td>
+                            <span id="lblStatus" class="cResult" style="width: 70px;"></span>
+                            <span style="font-size:15px;"><strong>0: Chưa SD, 1: Đang SD, 2: Hết</strong></span>
+                        </td>
+                    </tr>
+                    <tr style="height: 40px;">
+                        <td class="cTitle">Lý Do:</td>
+                        <td>
+                            @*<span style="width: 200px;" id="lblReason" class="cResult"></span>*@
+                            <select name="reason" id="reasons">
+                                <option value="Other">Khác</option>
+                                <option value="AgeLimit">Hết Hạn Sử Dụng</option>
+                                <option value="Abnormal">Lỗi Dị Vật</option>
+                                <option value="TSHold">Bảo lưu theo yêu cầu của TS</option>
+                                <option value="MCIssue">Lỗi máy (Alarm bất thường)</option>
+                                <option value="PigmentCan">Lỗi thùng kiểm tra remain Thùng cân hóa chất</option>
+                                <option value="LowEnergy">Lỗi trộn thiếu năng lượng</option>
+                                <option value="FailGood">Sản phẩm lỗi</option>
+                                <option value="Quality">Sự cố chất lượng</option>
+                                <option value="Remain">Tồn kho không sử dụng hết</option>
+                            </select>
+                        </td>
+                    </tr>
+
+                    <tr style="height: 40px;">
+                        <td style="padding-left:75px;" colspan=3>
+                            <input type="button" id="btnRegister" class="Button" value="Đăng Ký BlueMemo Tạm Thời" onclick="RegisterBlueMemoBefore()" style=" width:300px; background-color:coral;">
+                        </td>
+                    </tr>
+                    <tr style="height: 40px;">
+                        <td class="cTitle">Kết Quả:</td>
+                        <td>
+                            <span id="lblResult" class="cResult" style="width: 70px;"></span>                            
+                        </td>                        
+                    </tr>
+                    <tr style="height: 40px;">
+                        <td colspan=2>                            
+                            <input type="button" id="btnClear" class="Button" value="Làm Mới" onclick="Clear()" style="width:100px;margin-left:10px;">
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="Message" style="margin-top: 10px;">
+                <textarea readonly="" rows="2" id="txtMessage" style="position:absolute;z-index:2;height: 200px;overflow-x: hidden;"></textarea>
+            </div>
+        </div>
+    </div>
+</form>
+<script type="text/javascript">
+    var Menu = function () {
+        window.location = '@Url.Action("Index", "Home")';
+    };
+
+    //Kiểm tra xác minh
+    function CheckOperator() {
+        if (!event.keyCode || (event.keyCode != 13 && event.keyCode != 9)) {
+            return;
+        }
+        //Kiểm tra giá trị đã nhập chưa
+        var operatorId = $.trim(document.getElementById("txtOperatorId").value);
+        if (operatorId == '') {
+            document.getElementById('txtMessage').value = 'Hãy nhập mã Code người dùng';
+            document.getElementById('txtOperatorId').focus();
+            return false;
+        }
+        //Xác minh mã người dùng
+        $.ajax({
+            type: "GET",
+            cache: false,
+            async: false,
+            url: '@Url.Action("CheckOP", "Home")?operatorId=' + operatorId + '&programName=BTMVAPP028&functionName=BLUEMEMOHOLD',
+            dataType: "text",
+            success: CheckOperatorAfter,
+            error: AjaxErrorAfter
+        });
+
+        return false;
+    }
+    //Xử lý giao diện sau khi xác minh mã người dùng
+    var CheckOperatorAfter = function (data) {
+        var parameter = data.split("#");
+        var result = parameter[0];
+        var message = parameter[1];
+        if (result == 'OK') {
+            document.getElementById('txtMessage').value = 'Hãy nhập thẻ EFU';
+            document.getElementById('txtOperatorId').disabled = true;
+            document.getElementById("btnClear").disabled = false;
+            document.getElementById('btnClear').style.color = 'Black';
+            document.getElementById('txtOperatorId').style.backgroundColor = 'Gainsboro';
+            document.getElementById('txtEf').disabled = false;
+            document.getElementById('txtEf').style.backgroundColor = 'White';
+            document.getElementById('txtEf').focus();
+            return;
+        } else {
+            ReleaseView();
+            document.getElementById('txtMessage').value = message;
+            return false;
+        }
+    }
+    function GetEFUDataBefore() {
+        if (!event.keyCode || (event.keyCode != 13 && event.keyCode != 9)) {
+            return;
+        }
+
+        //Kiểm tra giá trị đã nhập chưa
+        var ef = document.getElementById('txtEf').value;
+        //if (ef.startsWith("MV") || ef.startsWith("21") ||
+        //    ef.startsWith("22") || ef.startsWith("23") ||
+        //    ef.startsWith("24") || ef.startsWith("25") ||
+        //    ef.startsWith("A")) {
+
+        //}
+        //else {
+        //    document.getElementById('lblResult').innerText = "NG";
+        //    SetStyleResultNG();
+        //    document.getElementById('txtMessage').value = "Sai định dang Efu Tag";
+        //}
+        document.getElementById('txtEf').disabled = true;
+        $.ajax({
+            type: "GET",
+            cache: false,
+            async: false,
+            url: '@Url.Action("Get_EFU_Data", "HoldGenbaMaterial")?&ef=' + ef,
+            dataType: "text",
+            success: GetDataAfter,
+            error: AjaxErrorSubmitAfter
+        });
+    }
+
+    var GetDataAfter = function (data) {
+        var parameter = data.split("#");
+        var efuFull = document.getElementById('txtEf').value;
+        var efu = "";
+        if (efuFull.startsWith("MV")) {
+            efu = efuFull.substr(3, 10);
+        }
+        else {
+            efu = efuFull;
+        }
+        var result = parameter[0];
+        if (result.startsWith("OK")) {
+            var finalResult = parameter[0];
+            var message = parameter[3];
+            var remain = parameter[1];
+            var status = parameter[2];
+            document.getElementById('lblResult').innerText = finalResult;
+            document.getElementById('lblRemain').innerText = remain;
+            document.getElementById('lblStatus').innerText = status;
+            document.getElementById('txtMessage').value = message;
+        }
+        else {
+            var message = parameter[1];
+            SetStyleResultNG();
+            document.getElementById('lblResult').innerText = result;
+            document.getElementById('txtMessage').value = message;
+        }
+        document.getElementById('txtEfu').value = efu;
+
+        return false;
+    }
+
+    //Xử lý trước khi Dang ky BlueMemo
+    function RegisterBlueMemoBefore() {
+        if (!event.keyCode || (event.keyCode != 13 && event.keyCode != 9)) {
+            return;
+        }
+
+        //Kiểm tra giá trị đã nhập chưa
+        var ef = document.getElementById('txtEf').value;
+        if (ef == '') {
+            document.getElementById('txtMessage').value = 'Hãy nhập EFU';
+            document.getElementById('txtEf').focus();
+            return false;
+        }
+
+        //Thông báo đang xử lý
+        document.getElementById('txtMessage').value = "Đang xử lý";
+        setTimeout(RegisterBlueMemo, 10);
+    }
+
+    //Dang ky BlueMemo
+    function RegisterBlueMemo() {
+        document.getElementById('txtEf').disabled = true;
+        var operatorId = document.getElementById('txtOperatorId').value;
+        var ef = document.getElementById('txtEf').value;
+
+        $.ajax({
+            type: "GET",
+            cache: false,
+            async: false,
+            url: '@Url.Action("Hold_Genba_Material", "HoldGenbaMaterial")?operatorId=' + operatorId + '&ef=' + ef,
+            dataType: "text",
+            success: SubmitAfter,
+            error: AjaxErrorSubmitAfter
+        });
+    }
+
+    //Xử lý sau khi Dang ky BlueMemo
+    var SubmitAfter = function (data) {
+        var parameter = data.split("#");
+
+        var result = parameter[0];
+        var message = parameter[1];
+
+        document.getElementById('lblResult').innerText = result;
+        document.getElementById('txtMessage').value = message;
+
+        if (result == 'NG') {
+            SetStyleResultNG();
+        } else {
+            SetStyleResultOK();
+        }
+
+        return false;
+    }
+
+    //Lỗi khi Dang ky BlueMemo
+    var AjaxErrorSubmitAfter = function (xhr) {
+        if (xhr.status == 999) {
+            document.getElementById('txtMessage').value = 'Khong the ket noi duoc voi may chu';
+        } else if (xhr.status == 500) {
+            document.getElementById('txtMessage').value = 'Dang ky BlueMemo that bai (ErrorCode: 500)';
+        };
+        document.getElementById('txtMessage').value = 'Dang ky BlueMemo that bai';
+    }
+
+    //Lỗi khi đăng nhập
+    var AjaxErrorAfter = function () {
+        ReleaseView();
+        document.getElementById('txtMessage').value = 'Đăng nhập thất bại';
+    }
+
+    //Làm mới giao diện
+    var ReleaseView = function () {
+        document.getElementById('lblResult').innerText = '';
+        document.getElementById('txtMessage').value = '';
+
+        document.getElementById('txtEf').value = '';
+        document.getElementById('txtEf').disabled = true;
+        document.getElementById('txtEf').style.backgroundColor = 'Gainsboro';
+
+        document.getElementById('btnClear').style.color = '#ccc';
+        document.getElementById("btnClear").disabled = true;
+
+        document.getElementById('txtOperatorId').style.backgroundColor = 'White';
+        document.getElementById('txtOperatorId').disabled = false;
+        document.getElementById('txtOperatorId').value = '';
+        document.getElementById("txtOperatorId").focus();
+        document.getElementById('txtOperatorId').select();
+        SetStyleResultOK();
+    };
+
+    //Clear
+    var Clear = function () {
+        document.getElementById('lblResult').innerText = '';
+        document.getElementById('txtMessage').value = '';
+
+        document.getElementById('txtEf').disabled = false;
+        document.getElementById('txtOperatorId').disabled = true;
+        document.getElementById('txtOperatorId').style.backgroundColor = 'Gainsboro';
+        document.getElementById('txtEf').style.backgroundColor = 'White';
+        document.getElementById('txtAddress').value = '';
+        document.getElementById('txtEf').value = '';
+        SetStyleResultOK();
+    };
+
+    function SetStyleResultNG() {
+        document.getElementById('lblResult').style.backgroundColor = 'Red';
+    }
+
+    function SetStyleResultOK() {
+        document.getElementById('lblResult').style.backgroundColor = 'White';
+    }
+    $(function () {
+        ReleaseView();
+    });
+</script>

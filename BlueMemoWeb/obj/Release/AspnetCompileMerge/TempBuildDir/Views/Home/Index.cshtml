@@ -1,0 +1,68 @@
+﻿@{
+    ViewBag.Title = "BlueMemo Hold GT";
+}
+<div class="Commonheader">
+    <div class="HeaderTitle">
+        <span class="titleText" style="text-align:center;">BlueMemo PDA System</span>
+    </div>
+</div>
+<form>
+    <div class="frame">
+        <table style="width: 100%;">
+            <tbody>
+                <tr>
+                    <td style="text-align: left">Version: 04.10.2024</td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="MenuBody">
+            @*<div style="display: block;" id="page1">*@
+            @*<input type="button" id="btnBlueMemoHoldGT" class="Button" value="BlueMemo Hold GT" onclick="BlueMemoHoldGT()" style="margin-bottom: 20px;">*@
+            <input type="button" id="btnBlueCreateSingle" class="Button" value="Phát Hành BlueMemo (Lẻ)" onclick="BlueCreateSingle()" style="margin-bottom: 20px;">
+            <input type="button" id="btnBlueCreateMulti" class="Button" value="Phát Hành BlueMemo (Nhiều)" onclick="BlueCreateMulti()" style="margin-bottom: 20px;">
+            @*</div>
+        <div style="display: block;" id="page2">
+        </div>
+        <div class="switch" style="text-align:center">
+            <input type="button" id="btnPage1" value="1" onclick="ChangePage(1)" disabled="">&nbsp;
+            <input type="button" id="btnPage2" value="2" onclick="ChangePage(2)">
+        </div>*@
+        </div>
+    </div>
+</form>
+<script type="text/javascript">
+    //var maxPageCount = parseInt(2);
+
+    //$(document).ready(function () {
+
+    //    ChangePage(1);
+
+    //    if (1 == maxPageCount) {
+    //        document.getElementById('btnPage1').style.visibility = "hidden";
+    //    }
+    //});
+    
+    //function ChangePage(index) {
+    //    for (i = 1; i <= maxPageCount; i++) {
+    //        document.getElementById('page' + i.toString()).style.display = 'none';
+    //        document.getElementById('btnPage' + i.toString()).disabled = false;
+    //    }
+
+    //    document.getElementById('page' + index.toString()).style.display = 'block';
+    //    document.getElementById('btnPage' + index.toString()).disabled = true;
+                        
+    //    var firstItem = pageFirstItemArray[index];
+    //    document.getElementById(firstItem).focus();
+    //}
+
+    @*var BlueMemoHoldGT = function () {
+        window.location = '@Url.Action("Index", "BlueMemoHoldGT")';
+    };*@
+    var BlueCreateSingle = function () {
+        window.location = '@Url.Action("Index", "HoldGenbaMaterial")';
+    };
+    var BlueCreateMulti = function () {
+        window.location = '@Url.Action("Index", "HoldGenbaMultipleMaterial")';
+    };
+</script>
+
